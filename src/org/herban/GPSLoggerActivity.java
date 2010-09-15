@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -15,6 +16,8 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -26,6 +29,32 @@ public class GPSLoggerActivity extends Activity implements SurfaceHolder.Callbac
 	private RingBuffer mRingBuffer;
  
 	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    menu.add("start");
+		menu.add("stop");
+		menu.add("export");
+		return true;
+	}
+
+
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if ("start".equals(""+item.getTitle())) {
+			 startService(new Intent(GPSLoggerActivity.this,
+	                    APVLoggingService.class));
+			 sensorManager.registerListener(mySensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+						SensorManager.SENSOR_DELAY_NORMAL);
+				
+		} else if ("stop".equals(""+item.getTitle())) {
+			 stopService(new Intent(GPSLoggerActivity.this,
+	                    APVLoggingService.class));
+			 sensorManager.unregisterListener(mySensorEventListener);
+		}  
+		return true;
+	}
+
 	private final class MySensorEventListener implements SensorEventListener {
 		
 		@Override
@@ -116,8 +145,6 @@ public class GPSLoggerActivity extends Activity implements SurfaceHolder.Callbac
 	public void surfaceChanged(SurfaceHolder arg0, int arg1, int width, int height) {
 		
 		camera.startPreview();
-		sensorManager.registerListener(mySensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-				SensorManager.SENSOR_DELAY_NORMAL);
 		/*camera.setPreviewCallback(new PreviewCallback(){
 
 	 
@@ -165,4 +192,16 @@ public class GPSLoggerActivity extends Activity implements SurfaceHolder.Callbac
 		camera=null;
 		
 	}
+	  @Override
+	    protected void onResume() {
+	        super.onResume();
+	   	 sensorManager.registerListener(mySensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+					SensorManager.SENSOR_DELAY_NORMAL);
+	    }
+	    
+	    @Override
+	    protected void onStop() {
+	    	sensorManager.unregisterListener(mySensorEventListener);
+	        super.onStop();
+	    }
 }
